@@ -38,8 +38,14 @@ class UserController extends Controller
 
         $user= User::create($incomingFields);
         auth()->login($user);
-        return redirect('/');
+        return redirect('/')->with('success', 'Account created successfully!');
+    }
 
+    public function showRegisterForm() {
+        return view('auth.register');
+    }
 
+    public function showLoginForm() {
+        return view('auth.login');
     }
 }
