@@ -1,151 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+@extends('layouts.layout')
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 20px;
-        }
-    
-        p {
-            font-size: 18px;
-            color: #28a745;
-            text-align: center;
-            font-weight: bold;
-        }
-    
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 15px;
-        }
-    
-        input, textarea {
-            width: 90%;
-            padding: 10px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-    
-        button {
-            background: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            font-size: 16px;
-            transition: 0.3s ease;
-        }
-    
-        button:hover {
-            background: #218838;
-        }
-    
-        div {
-            max-width: 500px;
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-    
-        h2 {
-            text-align: center;
-            color: #333;
-        }
-    
-        .post {
-            background: #fff3cd;
-            padding: 15px;
-            border-left: 5px solid #ff9800;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-    
-        a {
-            color: #007bff;
-            text-decoration: none;
-            font-weight: bold;
-            text-align: center;
-            display: block;
-        }
-    
-        a:hover {
-            text-decoration: underline;
-        }
-    </style>
-    
-</head>
-<body>
-   @auth
-   <p>Congratulation you have logged in.</p>
-   <form action="/logout" method="POST">
-   @csrf
-   <button>log out</button>
-   </form>
-   
-   <div style="border : 3px solid black;">
-    <h2>Create a New Post</h2>
-    <form action="createPost" method="POST">
-        @csrf
-        <input type="text" name="title" placeholder="Title" required><br><br>
-        <textarea name="body" placeholder="body content..."></textarea>
-        <button>Save Post</button>       
-    </form>
-   </div>
+@section('content')
+    @auth
+        <div class="container">
+            <h1 class="hero-title" style="font-size: 2rem; text-align: left; margin-bottom: 0.5rem;">Hello, {{ auth()->user()->name }}!</h1>
+            <p style="margin-bottom: 2rem; color: var(--text-muted);">Welcome back to your dashboard.</p>
 
-   <div style="border : 3px solid black;">
-    <h2>All Posts</h2>
-    @foreach ($posts as $post)
-        <div style="background-color:rgb(254, 247, 247); padding:10px; margin:10px;">
-            <h3>{{$post['title']}}</h3>
-            {{$post['body']}}</p>
-            <p><a href="/edit-post{{$post->id}}">Edit</a></p>
-            <form action="/delete-post/{{$post->id }}" method="POST">
-                @csrf
-                @method('DELETE')
-                <button>DELETE</button>
+            <div class="card">
+                <h2>Create a New Post</h2>
+                <form action="/createPost" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-input" placeholder="My Awesome Post" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Content</label>
+                        <textarea name="body" class="form-textarea" placeholder="What's on your mind?" required></textarea>
+                    </div>
+                    <button class="btn btn-primary">Save Post</button>
+                </form>
+            </div>
 
-            </form>
+            <h2 style="margin-top: 3rem;">My Posts</h2>
+            @if(count($posts) > 0)
+                <div style="display: grid; gap: 1.5rem;">
+                    @foreach ($posts as $post)
+                        <div class="card" style="margin-bottom: 0;">
+                            <h3>{{$post['title']}}</h3>
+                            <div class="post-meta">Posted on {{ $post->created_at->format('M d, Y') }}</div>
+                            <p style="margin-bottom: 1rem;">{{ Str::limit($post['body'], 200) }}</p>
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <a href="/edit-post/{{$post->id}}" class="btn btn-outline" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Edit</a>
+                                <form action="/delete-post/{{$post->id }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-danger" style="font-size: 0.875rem; padding: 0.5rem 1rem;">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="card" style="text-align: center; color: var(--text-muted);">
+                    <p>You haven't posted anything yet.</p>
+                </div>
+            @endif
         </div>
-    @endforeach
-   </div>
+    @else
+        <div class="hero-section">
+            <h1 class="hero-title">Share Your Story with the World</h1>
+            <p class="hero-subtitle">Join our community of writers and readers. Create, share, and discover amazing content.</p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="/register" class="btn btn-primary" style="font-size: 1.25rem; padding: 1rem 2rem;">Get Started</a>
+                <a href="/blogs" class="btn btn-outline" style="font-size: 1.25rem; padding: 1rem 2rem;">Read Blogs</a>
+            </div>
+        </div>
 
-
-   @else
-   <div style="border : 3px solid black;">
-    <h2>Register</h2>
-    <form action="/register" method="POST">
-        @csrf
-        <input type="text" name="name" placeholder="Name" ><br><br>
-        <input type="email" name="email" placeholder="Email" ><br><br>
-        <input type="password" name="password" placeholder="Password" ><br><br>
-        <input type="password" name="password_confirmation" placeholder="Confirm Password" required><br><br>
-        <button >Register</button>
-        <a href="welcome">welcome</a>
-    </form>
-</div>
-
-<div style="border : 3px solid black;">
-    <h2>Login</h2>
-    <form action="/login" method="POST">
-        @csrf
-        <input type="text" name="loginname" placeholder="Name" ><br><br>
-        <input type="password" name="loginpassword" placeholder="Password" ><br><br>
-        <button>Login</button>
-    </form>
-</div>
-   @endauth
-
-</body>
-</html>
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Why Join Us?</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div class="card" style="text-align: center;">
+                    <h3>✍️ Write</h3>
+                    <p>Express yourself with our easy-to-use editor.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>🌍 Connect</h3>
+                    <p>Reach a global audience with your stories.</p>
+                </div>
+                <div class="card" style="text-align: center;">
+                    <h3>🚀 Grow</h3>
+                    <p>Build your personal brand and following.</p>
+                </div>
+            </div>
+        </div>
+    @endauth
+@endsection
